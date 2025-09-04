@@ -21,6 +21,7 @@
             --warning: #ffb946;
             --text-secondary: #b8c5d6;
             --text-muted: #8892b0;
+            --font-scale: 1;
         }
 
         * {
@@ -34,19 +35,26 @@
             background: transparent;
             color: white;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            width: 100vw;
+            height: 100vh;
         }
 
         .overlay-container {
-            width: 380px;
-            height: 480px;
+            width: 100vw;
+            height: 100vh;
             background: rgba(15, 15, 35, 0.95);
             backdrop-filter: blur(20px);
-            border-radius: 12px;
-            border: 1px solid rgba(37, 244, 238, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
         }
 
         .overlay-header {
@@ -63,6 +71,40 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .font-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 8px;
+        }
+
+        .font-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(37, 244, 238, 0.5);
+            background: rgba(37, 244, 238, 0.1);
+            color: var(--tiktok-blue);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .font-btn:hover {
+            background: rgba(37, 244, 238, 0.2);
+            border-color: rgba(37, 244, 238, 0.8);
         }
 
         .tiktok-icon {
@@ -108,8 +150,8 @@
             background: rgba(0, 0, 0, 0.3);
             padding: 8px 16px;
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 6px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             flex-shrink: 0;
         }
@@ -123,7 +165,7 @@
         }
 
         .stat-label {
-            font-size: 0.6rem;
+            font-size: calc(0.6rem * var(--font-scale));
             color: var(--text-secondary);
             margin-bottom: 2px;
             text-transform: uppercase;
@@ -131,13 +173,15 @@
         }
 
         .stat-value {
-            font-size: 0.8rem;
+            font-size: calc(0.8rem * var(--font-scale));
             font-weight: 700;
         }
 
         .viewers-stat .stat-value { color: var(--tiktok-blue); }
         .likes-stat .stat-value { color: var(--tiktok-red); }
         .diamonds-stat .stat-value { color: var(--tiktok-orange); }
+        .followers-stat .stat-value { color: var(--tiktok-purple); }
+        .shares-stat .stat-value { color: var(--success); }
 
         .content-area {
             flex: 1;
@@ -186,7 +230,7 @@
             border-radius: 6px;
             padding: 8px 10px;
             border-left: 3px solid var(--tiktok-blue);
-            font-size: 0.8rem;
+            font-size: calc(0.8rem * var(--font-scale));
             line-height: 1.3;
             animation: slideInRight 0.3s ease-out;
             transition: all 0.2s ease;
@@ -236,11 +280,11 @@
             font-weight: 600;
             color: var(--tiktok-blue);
             text-decoration: none;
-            font-size: 0.75rem;
+            font-size: calc(0.75rem * var(--font-scale));
         }
 
         .timestamp {
-            font-size: 0.65rem;
+            font-size: calc(0.65rem * var(--font-scale));
             color: var(--text-muted);
             margin-left: auto;
         }
@@ -269,7 +313,7 @@
 
         .gift-info {
             flex: 1;
-            font-size: 0.7rem;
+            font-size: calc(0.7rem * var(--font-scale));
         }
 
         .gift-name {
@@ -293,6 +337,52 @@
             from { opacity: 0; transform: translateX(20px); }
             to { opacity: 1; transform: translateX(0); }
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .stats-bar {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 4px;
+                padding: 6px 12px;
+            }
+            
+            .stat-item:nth-child(4),
+            .stat-item:nth-child(5) {
+                display: none;
+            }
+            
+            .overlay-header {
+                padding: 8px 12px;
+            }
+            
+            .font-controls {
+                gap: 2px;
+            }
+            
+            .font-btn {
+                width: 20px;
+                height: 20px;
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-height: 500px) {
+            .overlay-header {
+                padding: 6px 12px;
+            }
+            
+            .stats-bar {
+                padding: 4px 12px;
+            }
+            
+            .stat-item {
+                padding: 4px 2px;
+            }
+            
+            .event-item {
+                padding: 6px 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -302,9 +392,15 @@
                 <i class="fab fa-tiktok tiktok-icon"></i>
                 <span class="header-title">Live Analytics</span>
             </div>
-            <div class="connection-status">
-                <span class="status-dot"></span>
-                <span id="stateText">Connecting...</span>
+            <div class="header-right">
+                <div class="font-controls">
+                    <button class="font-btn" id="decreaseFont" title="Decrease font size">-</button>
+                    <button class="font-btn" id="increaseFont" title="Increase font size">+</button>
+                </div>
+                <div class="connection-status">
+                    <span class="status-dot"></span>
+                    <span id="stateText">Connecting...</span>
+                </div>
             </div>
         </div>
 
@@ -316,6 +412,14 @@
             <div class="stat-item likes-stat">
                 <div class="stat-label">Likes</div>
                 <div class="stat-value" id="likeCount">0</div>
+            </div>
+            <div class="stat-item followers-stat">
+                <div class="stat-label">Follows</div>
+                <div class="stat-value" id="followerCount">0</div>
+            </div>
+            <div class="stat-item shares-stat">
+                <div class="stat-label">Shares</div>
+                <div class="stat-value" id="shareCount">0</div>
             </div>
             <div class="stat-item diamonds-stat">
                 <div class="stat-label">Diamonds</div>

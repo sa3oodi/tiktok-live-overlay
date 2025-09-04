@@ -20,7 +20,18 @@ const processedEvents = new Set();
 let viewerCount = 0; // Start with 0, update with real data
 let likeCount = 0;
 let diamondsCount = 0; // Diamonds start at 0 since they accumulate from gifts
+let followerCount = 0; // Track total followers from the live
+let shareCount = 0; // Track total shares from the live
 let hasReceivedInitialData = false; // Track if we've received any real data
+
+// Font scaling
+let fontScale = parseFloat(localStorage.getItem('overlayFontScale')) || 1;
+const minFontScale = 0.6;
+const maxFontScale = 2.0;
+const fontScaleStep = 0.1;
+
+// Track users who have already liked to avoid duplicates
+const usersWhoLiked = new Set();
 
 // Mark this as overlay context to prevent conflicts
 window.isOverlayContext = true;
@@ -35,6 +46,24 @@ $(document).ready(() => {
         return;
     }
     window.overlayInitialized = true;
+
+    // Apply saved font scale on load
+    updateFontScale();
+
+    // Set up font control buttons
+    $('#increaseFont').on('click', () => {
+        if (fontScale < maxFontScale) {
+            fontScale = Math.min(maxFontScale, fontScale + fontScaleStep);
+            updateFontScale();
+        }
+    });
+
+    $('#decreaseFont').on('click', () => {
+        if (fontScale > minFontScale) {
+            fontScale = Math.max(minFontScale, fontScale - fontScaleStep);
+            updateFontScale();
+        }
+    });
 
     if (!isInitialized && window.settings && window.settings.username) {
         console.log('Auto-connecting to:', window.settings.username);
@@ -78,10 +107,18 @@ function initializeConnection() {
             updateRoomStats();
         }
 
-        // Only show like message if likeCount is provided and greater than 0
-        if (typeof msg.likeCount === 'number' && msg.likeCount > 0) {
+        // Only show like message once per user, regardless of like count
+        if (msg.userId && msg.likeCount > 0) {
+            if (usersWhoLiked.has(msg.userId)) {
+                // User already liked, don't show message again
+                return;
+            }
+            
+            // Add user to the set of users who have liked
+            usersWhoLiked.add(msg.userId);
+            
             // Create unique event ID to prevent duplicates
-            const eventId = `like_${msg.userId}_${msg.timestamp || Date.now()}_${msg.likeCount}`;
+            const eventId = `like_${msg.userId}_${msg.timestamp || Date.now()}`;
             
             if (processedEvents.has(eventId)) {
                 console.log('Duplicate like event prevented:', eventId);
@@ -96,7 +133,7 @@ function initializeConnection() {
                 eventsArray.slice(0, 50).forEach(id => processedEvents.delete(id));
             }
             
-            addChatItem('#fe2c55', msg, `sent ${msg.likeCount} like${msg.likeCount > 1 ? 's' : ''}`);
+            addChatItem('#fe2c55', msg, `liked the live`);
         }
     });
 
@@ -192,6 +229,15 @@ function initializeConnection() {
             eventsArray.slice(0, 50).forEach(id => processedEvents.delete(id));
         }
         
+        // Track followers and shares
+        if (data.displayType && data.displayType.includes('follow')) {
+            followerCount++;
+            updateRoomStats();
+        } else if (data.displayType && data.displayType.includes('share')) {
+            shareCount++;
+            updateRoomStats();
+        }
+        
         let color = data.displayType.includes('follow') ? '#fe2c55' : '#00d4aa';
         addChatItem(color, data, data.label.replace('{0:user}', ''));
     });
@@ -234,7 +280,10 @@ function connect() {
 
         // Reset only diamonds (they accumulate from gifts)
         diamondsCount = 0;
+        followerCount = 0;
+        shareCount = 0;
         hasReceivedInitialData = false;
+        usersWhoLiked.clear(); // Clear the like tracking set for new stream
         
         // Show current stats immediately
         updateRoomStats();
@@ -279,7 +328,15 @@ function sanitize(text) {
 function updateRoomStats() {
     $('#viewerCount').text(viewerCount.toLocaleString());
     $('#likeCount').text(likeCount.toLocaleString());
+    $('#followerCount').text(followerCount.toLocaleString());
+    $('#shareCount').text(shareCount.toLocaleString());
     $('#diamondCount').text(diamondsCount.toLocaleString());
+}
+
+function updateFontScale() {
+    document.documentElement.style.setProperty('--font-scale', fontScale);
+    localStorage.setItem('overlayFontScale', fontScale.toString());
+    console.log('Font scale updated to:', fontScale);
 }
 
 function generateUsernameLink(data) {
