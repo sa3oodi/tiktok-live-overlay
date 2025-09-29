@@ -340,7 +340,9 @@ function updateFontScale() {
 }
 
 function generateUsernameLink(data) {
-    return `<a class="username" href="https://www.tiktok.com/@${data.uniqueId}" target="_blank">${data.uniqueId}</a>`;
+    // Use nickname (display name) if available, otherwise fall back to uniqueId (username)
+    const displayName = data.nickname || data.displayName || data.uniqueId;
+    return `<a class="username" href="https://www.tiktok.com/@${data.uniqueId}" target="_blank">${displayName}</a>`;
 }
 
 function isPendingStreak(data) {
@@ -379,6 +381,8 @@ function addChatItem(color, data, text, summarize) {
     if (text.includes('followed')) eventClass += ' follow';
 
     const textColor = color ? `color: ${color}` : '';
+    // Use nickname (display name) if available, otherwise fall back to uniqueId (username)
+    const displayName = data.nickname || data.displayName || data.uniqueId;
 
     container.append(`
         <div class="${eventClass} ${messageClass}">
@@ -386,7 +390,7 @@ function addChatItem(color, data, text, summarize) {
                 <img class="miniprofilepicture" src="${data.profilePictureUrl}" 
                      onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMTAiIGZpbGw9IiMzNzM3MzciLz4KPGNpcmNsZSBjeD0iMTAiIGN5PSI4IiByPSIzIiBmaWxsPSIjNjY2NjY2Ii8+CjxwYXRoIGQ9Ik0xNyAxNmMwLTMuODctMy4xMy03LTctN3MtNyAzLjEzLTcgN2gxNFoiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+'" 
                      alt="Profile">
-                <a href="https://www.tiktok.com/@${data.uniqueId}" target="_blank" class="username">${data.uniqueId}</a>
+                <a href="https://www.tiktok.com/@${data.uniqueId}" target="_blank" class="username">${displayName}</a>
                 <span class="timestamp">${timestamp}</span>
             </div>
             <div class="event-content" style="${textColor}">${sanitize(text)}</div>
@@ -419,6 +423,8 @@ function addGiftItem(data) {
         minute: '2-digit' 
     });
     const isStreaking = isPendingStreak(data);
+    // Use nickname (display name) if available, otherwise fall back to uniqueId (username)
+    const displayName = data.nickname || data.displayName || data.uniqueId;
 
     let html = `
         <div class="event-item gift ${isStreaking ? 'streaking' : ''}" data-streakid="${isStreaking ? streakId : ''}">
@@ -426,7 +432,7 @@ function addGiftItem(data) {
                 <img class="miniprofilepicture" src="${data.profilePictureUrl}" 
                      onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMTAiIGZpbGw9IiMzNzM3MzciLz4KPGNpcmNsZSBjeD0iMTAiIGN5PSI4IiByPSIzIiBmaWxsPSIjNjY2NjY2Ii8+CjxwYXRoIGQ9Ik0xNyAxNmMwLTMuODctMy4xMy03LTctN3MtNyAzLjEzLTcgN2gxNFoiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+'" 
                      alt="Profile">
-                <a href="https://www.tiktok.com/@${data.uniqueId}" target="_blank" class="username">${data.uniqueId}</a>
+                <a href="https://www.tiktok.com/@${data.uniqueId}" target="_blank" class="username">${displayName}</a>
                 <span class="timestamp">${timestamp}</span>
             </div>
             <div class="event-content">${data.describe}</div>
